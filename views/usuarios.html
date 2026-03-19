@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão de Usuários - BiblioTech</title>
+    <link rel="stylesheet" href="usuarios.css"> </head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Biblio<span>Tech</span></h2>
+            <nav><ul>
+                <li><a href="/dashboard">Painel Geral</a></li>
+                <li class="active">Usuários</li>
+                <li><a href="/gerenciar-livro">Gerenciar livros</a></li>
+                <li><a href="/locacoes-page">Locações Ativas</a></li>
+            </ul></nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>Gestão de Usuários</h1>
+
+            <section class="data-table">
+                <h3>Cadastrar Novo Usuário</h3>
+                <form id="formCadastro" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <input type="text" id="novoNome" placeholder="Nome" required>
+                    <input type="password" id="novaSenha" placeholder="Senha" required>
+                    <select id="novoRole">
+                        <option value="cliente">Cliente</option>
+                        <option value="admin">Administrador</option>
+                    </select>
+                    <button type="submit" style="background: #fdd835; border:none; padding: 5px 15px; cursor: pointer;">Cadastrar</button>
+                </form>
+            </section>
+
+            <section class="data-table">
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Nome</th><th>Role</th><th>Ações</th></tr>
+                    </thead>
+                    <tbody id="tabelaUsuarios"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+  <script>
+        const token = localStorage.getItem('token');
+
+        // Carregar Usuários
+        async function carregarUsurios() {
+            try {
+                const res = await fetch('/usuarios', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!res.ok) throw new Error("Erro ao carregar usuários");
+
+                const users = await res.json();
+                const corpo = document.getElementById('tabelaUsuarios');
+                corpo.innerHTML = users.map(u => `
+                    <tr>
+                        <td>${u.id}</td>
+                        <td>${u.nome}</td>
+                        <td><span class="tag-role">${u.role}</span></td>
+                        <td>
+                            <button onclick="deletarUsuario(${u.id})" style="background:#ff5252; color:white; border:none; padding:5px 10px; cursor:pointer; border-radius:4px;">Deletar</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error(error);
+            }
+        }
+
+        // Cadastrar usuários
+        document.getElementById('formCadastro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const novoUsuario = {
+                nome: document.getElementById('novoNome').value,
+                senha: document.getElementById('novaSenha').value,
+                role: document.getElementById('novoRole').value
+            };
+
+            const res = await fetch('/usuarios', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(novoUsuario)
+            });
+
+            if (res.ok) {
+                alert("Usuário cadastrado com sucesso!");
+                e.target.reset(); // LIMPA O FORMULÁRIO
+                carregarUsurios();
+            } else {
+                alert("Erro ao cadastrar usuário.");
+            }
+        });
+
+        // Deletar usuários
+        async function deletarUsuario(id) {
+            if (confirm('Tem certeza que quer deletar o usuário?')) {
+                const res = await fetch(`/usuarios/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.ok) {
+                    carregarUsurios();
+                } else {
+                    alert("Erro ao deletar usuário.");
+                }
+            }
+        }
+
+        carregarUsurios();
+    </script>
+</body>
+</html>

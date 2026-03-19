@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - BiblioTech</title>
+    <link rel="stylesheet" href="catalogo.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">Biblio<span>Tech</span></div>
+        <div class="search-area">
+            <input type="text" id="inputBusca" placeholder="Pesquisar título ou autor...">
+            <select id="selectCategoria">
+                <option value="">Todas as Categorias</option>
+                <option value="Fantasia">Fantasia</option>
+                <option value="Terror">Terror</option>
+                <option value="Romance">Romance</option>
+                <option value="Literatura">Literatura</option>
+                <option value="Ficção">Ficção</option>
+            </select>
+            <button id="btnBuscar">Buscar</button>
+        </div>
+        <div class="user-menu">
+            <span id="nomeUsuario">Olá, Usuário</span>
+            <button class="btn-sair" onclick="logout()">Sair</button>
+        </div>
+    </header>
+
+    <main class="content">
+        <div style="padding: 0 40px; margin-top: 20px;">
+            <h1>Explorar Acervo</h1>
+        </div>
+        <div class="grid-livros" id="listaLivros">
+            </div>
+    </main>
+
+    <script>
+        // Exibir nome do usuário logado
+        const nomeLogado = localStorage.getItem('nome');
+        if (nomeLogado) {
+            document.getElementById('nomeUsuario').innerText = `Olá, ${nomeLogado}`;
+        }
+
+        async function carregarLivros(termo = '', categoria = '') {
+            const url = `/livros/buscar?termo=${termo}&categoria=${categoria}`;
+            try {
+                const response = await fetch(url);
+                const livros = await response.json();
+
+                const container = document.getElementById('listaLivros');
+                container.innerHTML = '';
+
+                livros.forEach(livro => {
+                    const card = document.createElement('div');
+                    card.className = 'card-livro';
+                    
+                    // Estrutura atualizada para suportar o novo CSS com imagem
+                    card.innerHTML = `
+                        <div class="capa-container">
+                            <img src="${livro.imagemUrl || '/imagens/capa-padrao.jpg'}" 
+                                 alt="Capa de ${livro.titulo}" 
+                                 class="capa-livro">
+                        </div>
+                        <div class="info-livro">
+                            <span class="categoria-tag">${livro.categoria}</span>
+                            <h3>${livro.titulo}</h3>
+                            <p><strong>Autor:</strong> ${livro.autor}</p>
+                            <p><strong>Ano:</strong> ${livro.ano}</p>
+                            <p>Status: <strong class="status-${livro.status}">${livro.status}</strong></p>
+                            
+                            <button class="btn-alugar" 
+                                ${livro.status === 'indisponivel' ? 'disabled' : ''} 
+                                onclick="alugarLivro(${livro.id})">
+                                ${livro.status === 'indisponivel' ? 'Indisponível' : 'Alugar Livro'}
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar catálogo:", error);
+            }
+        }
+
+        async function alugarLivro(id) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Você precisa estar logado para alugar!");
+                window.location.href = '/';
+                return;
+            }
+
+            const response = await fetch('/locacoes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ livroId: id, dias: 7 })
+            });
+
+            if (response.ok) {
+                alert("Livro alugado com sucesso!");
+                carregarLivros(); 
+            } else {
+                const erro = await response.text();
+                alert("Erro ao alugar livro: " + erro);
+            }
+        }
+
+        function logout() {
+            localStorage.clear(); // Limpa token, nome e role
+            window.location.href = '/'; // Volta para a tela de login
+        }
+
+        // Eventos de Busca
+        document.getElementById('btnBuscar').addEventListener('click', () => {
+            const termo = document.getElementById('inputBusca').value;
+            const cat = document.getElementById('selectCategoria').value;
+            carregarLivros(termo, cat);
+        });
+
+        // Inicialização
+        carregarLivros();
+    </script>
+</body>
+</html>

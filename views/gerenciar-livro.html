@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerenciar Acervo - BiblioTech</title>
+    <link rel="stylesheet" href="gerenciar-livro.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Biblio<span>Tech</span></h2>
+            <nav>
+                <ul>
+                    <li><a href="/dashboard">Painel Geral</a></li>
+                    <li class="active">Gerenciar livros</li>
+                    <li><a href="/usuarios-page">Usuários</a></li>
+                    <li><a href="/locacoes-page">Locações Ativas</a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <h1>Gerenciamento de Acervo</h1>
+            
+            <section class="form-section">
+                <h3>Cadastrar Novo Livro</h3>
+                <form id="formLivro">
+                    <input type="text" id="titulo" placeholder="Título" required>
+                    <input type="text" id="autor" placeholder="Autor" required>
+                    <input type="text" id="categoria" placeholder="Categoria" required>
+                    <input type="number" id="ano" placeholder="Ano" required>
+                    <input type="text" id="imagemUrl" placeholder="URL da Imagem (Ex: /imagens/livro.jpg)">
+                    <button type="submit" class="btn-add">Adicionar Livro</button>
+                </form>
+            </section>
+
+            <section class="data-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Autor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaLivros"></tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        // Função para listar os livros na tabela
+        async function listarLivros() {
+            try {
+                const res = await fetch('/livros');
+                const livros = await res.json(); // Adicionado await aqui
+                
+                const corpo = document.getElementById('tabelaLivros');
+                corpo.innerHTML = livros.map(l => `
+                    <tr>
+                        <td>${l.id}</td>
+                        <td>${l.titulo}</td>
+                        <td>${l.autor}</td>
+                        <td><span class="status-tag">${l.status}</span></td>
+                        <td>
+                            <button class="btn-del" onclick="deletarLivro(${l.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Erro ao listar livros:", err);
+            }
+        }
+
+        // Adicionar novos livros
+        document.getElementById('formLivro').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const novoLivro = {
+                titulo: document.getElementById('titulo').value,
+                autor: document.getElementById('autor').value,
+                categoria: document.getElementById('categoria').value,
+                ano: document.getElementById('ano').value,
+                imagemUrl: document.getElementById('imagemUrl').value, // Captura o valor da imagem
+                status: 'disponivel'
+            };
+
+            const res = await fetch('/livros', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json', 
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify(novoLivro)
+            });
+
+            if (res.ok) {
+                alert("Livro cadastrado com sucesso!");
+                e.target.reset(); // Limpa o formulário
+                listarLivros(); // Atualiza a tabela
+            } else {
+                alert("Erro ao cadastrar. Verifique se você é um administrador.");
+            }
+        });
+
+        // Deletar livro
+        async function deletarLivro(id) {
+            if (confirm('Tem certeza que deseja excluir este livro?')) {
+                const res = await fetch(`/livros/${id}`, { 
+                    method: 'DELETE', 
+                    headers: { 'Authorization': `Bearer ${token}` } 
+                });
+
+                if (res.ok) {
+                    listarLivros();
+                } else {
+                    alert("Erro ao excluir livro.");
+                }
+            }
+        }
+
+        // Inicialização
+        listarLivros();
+    </script>
+</body>
+</html>

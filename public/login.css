@@ -1,0 +1,143 @@
+:root {
+    --azul-escuro: #1a237e;
+    --amarelo: #fdd835;
+    --branco: #ffffff;
+    --texto-suave: #666;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-container {
+    display: flex;
+    width: 800px;
+    height: 450px;
+    background-color: var(--branco);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+/* Lado Azul */
+.login-branding {
+    flex: 1;
+    background-color: var(--azul-escuro);
+    color: var(--branco);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    text-align: center;
+}
+
+.login-branding h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+
+.login-branding h1 span {
+    color: var(--amarelo);
+}
+
+.login-branding p {
+    font-size: 1rem;
+    opacity: 0.8;
+}
+
+/* Lado do Formulário */
+.login-form-box {
+    flex: 1.2;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.login-form-box h2 {
+    color: var(--azul-escuro);
+    margin-bottom: 25px;
+    font-size: 1.5rem;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--texto-suave);
+    font-size: 0.9rem;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+    border-color: var(--azul-escuro);
+}
+
+/* Botão Amarelo */
+.btn-login {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--amarelo);
+    border: none;
+    border-radius: 6px;
+    color: var(--azul-escuro);
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.2s, background-color 0.3s;
+}
+
+.btn-login:hover {
+    background-color: #fbc02d;
+    transform: translateY(-2px);
+}
+
+.form-footer {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.form-footer a {
+    color: var(--azul-escuro);
+    text-decoration: none;
+    font-size: 0.85rem;
+}
+
+.form-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsividade Básica */
+@media (max-width: 768px) {
+    .login-container {
+        flex-direction: column;
+        width: 90%;
+        height: auto;
+    }
+    .login-branding {
+        padding: 20px;
+    }
+}

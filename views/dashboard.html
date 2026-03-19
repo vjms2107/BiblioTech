@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Admin - Biblioteca</title>
+    <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Biblio<span>Tech</span></h2>
+            <nav>
+                <ul>
+                    <li class="active">Painel Geral</li>
+                    <li><a href="/gerenciar-livro">Gerenciar livros</a></li>
+                    <li><a class="links" href="/usuarios-page">Usuários</a></li>
+                    <li><a href="/locacoes-page">Locações Ativas</a></li>
+                </ul>
+            </nav>
+            <button class="btn-logout">Sair</button>
+        </aside>
+
+        <main class="main-content">
+            <header>
+                <h1>Bem-vindo, Administrador</h1>
+                <div class="user-info">admin@bibliotech.com</div>
+            </header>
+
+            <section class="stats">
+                <div class="card">
+                    <h3>Total de Livros</h3>
+                    <p id="total-livros">0</p>
+                </div>
+                <div class="card yellow">
+                    <h3>Locações Ativas</h3>
+                    <p id="total-locacoes">0</p>
+                </div>
+                <div class="card">
+                    <h3>Usuários</h3>
+                    <p id="total-usuarios">0</p>
+                </div>
+            </section>
+
+            <section class="data-table">
+                <h2>Relatório de Empréstimos</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Usuário</th>
+                            <th>Livro</th>
+                            <th>Prazo de Entrega</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-corpo">
+                       
+                    </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+    <script>
+        // Acesso do Dash-board somete para o Admin
+        const role=localStorage.getItem('role');
+        if(role!=='admin'){
+            alert("Acesso restrito ao administrador");
+            window.location.href='/catalogo';
+        }
+
+        const token = localStorage.getItem('token');
+
+        async function carregarDadosDashboard() {
+            try {
+                const response = await fetch('/admin/dashboard', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    alert("Sessão expirada ou acesso negado.");
+                    window.location.href = '/'; 
+                    return;
+                }
+
+                const dados = await response.json();
+
+                document.getElementById('total-livros').innerText = dados.totalLivros;
+                document.getElementById('total-usuarios').innerText = dados.totalUsuarios;
+                document.getElementById('total-locacoes').innerText = dados.totalLocacoes;
+
+                const tabelaResumo = document.getElementById('tabela-corpo');
+                if (tabelaResumo && dados.emprestimosAtivos) {
+                    // Limita a mostrar apenas as últimas 5 para não poluir o dashboard
+                    const ultimasCinco = dados.emprestimosAtivos.slice(0, 5);
+                    
+                    tabelaResumo.innerHTML = ultimasCinco.map(loc => `
+                        <tr>
+                            <td>${loc.usuario}</td>
+                            <td>${loc.livro}</td>
+                            <td>${new Date(loc.prazo).toLocaleDateString('pt-BR')}</td>
+                        </tr>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error("Erro ao carregar o dashboard:", error);
+            }
+        }
+
+        carregarDadosDashboard();
+
+        document.querySelector('.btn-logout').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = '/';
+});
+
+    </script>
+</body>
+</html>

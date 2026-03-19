@@ -1,0 +1,18 @@
+# Dependências (Nunca suba, são baixadas via npm install)
+node_modules/
+
+# Banco de Dados Local (O GitHub deve ter o código, não os seus dados pessoais/testes)
+*.db
+*.sqlite
+
+# Logs de erro
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Configurações de ambiente/Senhas (Caso você use .env no futuro)
+.env
+
+# Pastas de sistema ou do editor
+.vscode/
+.DS_Store

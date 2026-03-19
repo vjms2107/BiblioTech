@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - BiblioTech</title>
+    <link rel="stylesheet" href="/login.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-branding">
+            <h1>Biblio<span>Tech</span></h1>
+            <p>Sua biblioteca digital, inteligente e organizada.</p>
+        </div>
+
+        <div class="login-form-box">
+            <form id="loginForm">
+                <h2>Acessar Sistema</h2>
+                
+                <div class="input-group">
+                    <label for="nome">Usuário</label>
+                    <input type="text" id="nome" name="nome" placeholder="Digite seu usuário" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-login">ENTRAR</button>
+                
+                <div class="form-footer">
+                    <a href="#">Esqueceu a senha?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btnLogin = e.target.querySelector('button');
+        const nome = document.getElementById('nome').value;
+        const senha = document.getElementById('senha').value;
+
+        try {
+            // Desativa o botão para evitar múltiplos cliques
+            btnLogin.disabled = true;
+            btnLogin.innerText = "Entrando...";
+
+            const response = await fetch('/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome, senha })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Salva os dados para manter a sessão ativa
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('role', data.role);
+                localStorage.setItem('usuarioNome', data.nome); // Útil para mostrar "Olá, Victor" no dash
+                
+                if(data.role==='admin'){
+                    window.location.href='/dashboard';
+                }else{
+                    window.location.href='/catalogo';
+                }
+            } else {
+                alert('Falha no login: ' + (data.erro || 'Usuário ou senha inválidos'));
+                btnLogin.disabled = false;
+                btnLogin.innerText = "Entrar";
+            }
+        } catch (erro) {
+            console.error("Erro na requisição:", erro);
+            alert("Erro ao conectar com o servidor. Verifique se o node script.js está rodando.");
+            btnLogin.disabled = false;
+            btnLogin.innerText = "Entrar";
+        }
+    });
+    </script>
+</body>
+</html>

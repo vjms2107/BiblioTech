@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Locações Ativas - BiblioTech</title>
+    <link rel="stylesheet" href="locacoes.css">
+    <style>
+        /* Estilos específicos para alertas de prazo */
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            background-color: #fdd835;
+            color: #1a237e;
+        }
+        .prazo-vencido {
+            background-color: #ff5252 !important;
+            color: white !important;
+        }
+        .btn-devolver {
+            background-color: #1a237e;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-devolver:hover {
+            background-color: #283593;
+        }
+        .btn-sair-admin {
+            margin-top: 20px;
+            background: none;
+            border: 1px solid #fdd835;
+            color: #fdd835;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <aside class="sidebar">
+            <h2>Biblio<span>Tech</span></h2>
+            <nav>
+                <ul>
+                    <li><a href="/dashboard">Painel Geral</a></li>
+                    <li><a href="/gerenciar-livro">Gerenciar livros</a></li>
+                    <li><a href="/usuarios-page">Usuários</a></li>
+                    <li class="active">Locações Ativas</li>
+                </ul>
+            </nav>
+            <button class="btn-sair-admin" onclick="logout()">Sair do Painel</button>
+        </aside>
+
+        <main class="main-content">
+            <header style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px;">
+                <h1>Controle de Empréstimos</h1>
+                <div class="user-info" id="adminNome">Painel do Administrador</div>
+            </header>
+
+            <section class="data-table">
+                <h3>Livros em Posse de Usuários</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID Locação</th>
+                            <th>Usuário</th>
+                            <th>Livro</th>
+                            <th>Prazo de Entrega</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaLocacoes">
+                        </tbody>
+                </table>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        // Mostra o nome do admin se estiver disponível
+        if(localStorage.getItem('nome')) {
+            document.getElementById('adminNome').innerText = `Admin: ${localStorage.getItem('nome')}`;
+        }
+
+        async function carregarLocacoes() {
+            try {
+                // Usamos a rota do dashboard que já consolida as locações ativas
+                const response = await fetch('/admin/dashboard', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error("Acesso negado");
+
+                const dados = await response.json();
+                const tabela = document.getElementById('tabelaLocacoes');
+                tabela.innerHTML = ''; 
+
+                if (!dados.emprestimosAtivos || dados.emprestimosAtivos.length === 0) {
+                    tabela.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px;">Nenhuma locação ativa no momento.</td></tr>';
+                    return;
+                }
+
+                dados.emprestimosAtivos.forEach(loc => {
+                    const hoje = new Date();
+                    const dataPrazo = new Date(loc.prazo);
+                    const isVencido = dataPrazo < hoje;
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>#${loc.id}</td>
+                        <td><strong>${loc.usuario}</strong></td>
+                        <td>${loc.livro}</td>
+                        <td>
+                            <span class="status-badge ${isVencido ? 'prazo-vencido' : ''}">
+                                ${formatarData(loc.prazo)} ${isVencido ? '(Vencido)' : ''}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn-devolver" onclick="finalizarLocacao(${loc.id})">
+                                Confirmar Devolução
+                            </button>
+                        </td>
+                    `;
+                    tabela.appendChild(tr);
+                });
+            } catch (erro) {
+                console.error(erro);
+                alert("Sessão expirada. Faça login novamente.");
+                window.location.href = '/';
+            }
+        }
+
+        async function finalizarLocacao(id) {
+            if (!confirm("O livro foi devolvido fisicamente em bom estado?")) return;
+
+            // A rota DELETE /locacoes/:id no seu script.js apaga a locação e torna o livro disponível
+            const response = await fetch(`/locacoes/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                alert("Devolução processada! O livro já está disponível no catálogo.");
+                carregarLocacoes();
+            } else {
+                alert("Erro ao processar devolução no servidor.");
+            }
+        }
+
+        function formatarData(dataISO) {
+            const data = new Date(dataISO);
+            return data.toLocaleDateString('pt-BR');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/';
+        }
+
+        carregarLocacoes();
+    </script>
+</body>
+</html>
