@@ -32,7 +32,8 @@ Uma aplicação Full Stack robusta para controle de acervo bibliográfico, loca�
 *   **Segurança:** Autenticação baseada em níveis de acesso (Admin/Cliente).
 
  ---
-##📂 Estrutura de Arquivos Principal
+ 
+## 📂 Estrutura de Arquivos Principal
 
   **script.js**: Ponto de entrada da aplicação e configuração das rotas API.
   
@@ -41,6 +42,7 @@ Uma aplicação Full Stack robusta para controle de acervo bibliográfico, loca�
   **public/**: Arquivos estáticos (HTML, CSS e scripts do front-end).
   
   **.gitignore**: Configuração para ignorar arquivos desnecessários (node_modules, banco local).
+  
  ---
 
 
@@ -58,9 +60,9 @@ Uma aplicação Full Stack robusta para controle de acervo bibliográfico, loca�
 
 ---
 
-
-##📝 Licença
+## 📝 Licença
 Este projeto está sob a licença MIT. Sinta-se à vontade para usar, modificar e distribuir.
 
 Desenvolvido com 💻 e ☕ por [Victor Maciel].
+
 ---
